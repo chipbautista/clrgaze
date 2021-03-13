@@ -23,7 +23,6 @@ DATA_ROOT = '../data/'
 GENERATED_DATA_ROOT = '../generated-data/'
 
 PX_PER_DVA = 35  # pixels per degree of visual angle
-# MAX_VELOCITY = PX_PER_DVA
 
 RAND_SEED = 123
 
@@ -66,11 +65,8 @@ def get_parser():
     parser.add_argument("--name-prefix", default='', type=str)
     parser.add_argument("--eval-checkpoint", default=10, type=int)
     # Evaluation Settings
-    parser.add_argument("--pca-components", default=0, type=int)
     parser.add_argument("--save-tsne-plot", default=False, action="store_true")
     parser.add_argument("-cv", "--cv-folds", default=5, type=int)
-    parser.add_argument("--task", default='', type=str,
-                        help="task to train supervised CNN on")
     parser.add_argument("--representation-layer", default=0, type=int,
                         help="0: TCN output, 1: 1st projection layer")
     return parser

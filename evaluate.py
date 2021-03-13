@@ -7,7 +7,6 @@ import numpy as np
 from torch import no_grad, Tensor, manual_seed
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_validate, GridSearchCV, KFold
@@ -63,22 +62,6 @@ class RepresentationEvaluator:
                 args.model_vel.split('/')[-1])
             self.signal_types = list(self.model.network.keys())
             self.feature_type_idxs = self._build_representation_index_ranges()
-            self.dataset = self.init_dataset(args)
-
-        # evaluate using PCA features on raw data
-        elif args.pca_components > 0:
-            self.pca_components = args.pca_components
-            self._caller = 'main'
-            self.model = None
-            self.representation_name = 'evaluate-pca-{}'.format(
-                args.pca_components)
-            self.signal_types = args.signal_type.split(',')
-            self.feature_type_idxs = self._build_representation_index_ranges()
-            self.dataset = self.init_dataset(args)
-
-        elif 'supervised' in kwargs['representation_name']:
-            self.representation_name = kwargs['representation_name']
-            self.signal_types = kwargs['signal_types']
             self.dataset = self.init_dataset(args)
 
         # will store each corpus' info into a unified self.df.
@@ -154,15 +137,6 @@ class RepresentationEvaluator:
             z_col = 'z_' + signal_type
             z_cols.append(z_col)
             in_col = 'in_' + signal_type
-
-            if self.model is None and self.pca_components > 0:
-                logging.info('\tExtracting PCA representations...')
-                min_length = self.df[in_col].apply(lambda x: x.shape[0]).min()
-                pca_features = PCA(self.pca_components).fit_transform(
-                    np.stack(self.df[in_col].apply(
-                        lambda x: x[:min_length].reshape(-1))))
-                self.df[z_col] = list(pca_features)
-                continue
 
             try:
                 network = self.model.network[signal_type]
@@ -258,7 +232,6 @@ class RepresentationEvaluator:
                     scores[_task + '_test'][classifier[0]] = test_acc
                     self._write_scatterplot(_task, x_, y_, e)
 
-        # self._write_fi_plots()
         return scores
 
     def _log_labels(self, x, y):
@@ -284,10 +257,6 @@ class RepresentationEvaluator:
                 return
             self.tensorboard.add_figure(title, fig, global_step=e)
             logging.info('{} scatterplot saved to tensorboard'.format(method))
-
-        # df = pd.DataFrame(PCA(self.scatterplot_dims).fit_transform(z_values))
-        # df['label'] = list(y)
-        # add_figure(df, 'PCA')
 
         if self.save_tsne_plot:
             z_values = StandardScaler().fit_transform(np.stack(x))
@@ -315,22 +284,12 @@ if __name__ == '__main__':
         Biometrics_EMVIC(),
         Biometrics_3(),
         Biometrics_All(),
-        # Biometrics_NonEMVIC(),
         Biometrics_FIFA(),
         Biometrics_ETRA(),
         Biometrics_MIT(),
         Biometrics_MIT_LTP(),
         Biometrics_MIT_LR(),
         Biometrics_MIT_CVCL(),
-        # FaceStimuliBinary(),
-        # SearchTaskETRA(),
-        ETRAStimuli(),
-        ETRAStimuli_NonBlank(),
-        # ETRAStimuli_Fixation(),
-        # AgeGroup(),
-        # AgeGroupBinary(),
-        # GenderBinary(),
-        SearchTaskAll()
     ], args=args)
     evaluator.extract_representations()
     evaluator.evaluate()

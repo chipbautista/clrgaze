@@ -38,9 +38,6 @@ class Trainer:
         if self.cuda:
             self.model.network = self.model.network.cuda()
 
-        # self.lr_decay = optim.lr_scheduler.StepLR(
-        #     self.model.optim, step_size=100, gamma=0.5)
-
         self._load_data()
         self.loss_fn = NT_XentLoss(args)
         if self.use_fp16:
@@ -71,13 +68,7 @@ class Trainer:
             self.loss_fn.tau, self.dataloader.batch_size)
 
         self.evaluator = RepresentationEvaluator(
-            tasks=[# AgeGroupBinary(),
-                   # GenderBinary(),
-                   SearchTaskETRA(),
-                   SearchTaskAll(),
-                   # ETRAStimuli(),
-                   # ETRAStimuli_Fixation(),
-                   Biometrics_EMVIC(),
+            tasks=[Biometrics_EMVIC(),
                    Biometrics_ETRA(),
                    Biometrics_ETRA_Fixation(),
                    Biometrics_ETRA_All(),
@@ -88,7 +79,7 @@ class Trainer:
             classifiers=['svm_linear'],
             args=args,
             model=self.model,
-            # dataset=None,  # make evaluator initialize its own -- why?
+            # dataset=None,  # make evaluator initialize its own
             dataset=self.dataset,
             representation_name=_rep_name,
             # to evaluate on whole viewing time
@@ -135,11 +126,9 @@ class Trainer:
             self.log(i, time.time() - _checkpoint_start)
 
             e += 1
-            # self.lr_decay.step()
             if e % self.eval_checkpoint == 0:
                 self.evaluate_representation(i)
 
-            self.step_operations(e)
             _checkpoint_start = time.time()
 
         self.evaluate_representation(i)
@@ -186,13 +175,6 @@ class Trainer:
                         '{}_{}_acc'.format(task, classifier), acc, i)
         if self.save_model:
             self.model.save(i, run_identifier, self.global_losses)
-
-    def step_operations(self, e):
-        # if e % 1 == 0:
-        #     self.model.network.decrement_teacher_forcing_p()
-        # self.loss_fn.beta.step()
-        # self.lr_decay.step()
-        return
 
     def log(self, i, t):
         mean_train_loss = self.epoch_losses['train'] / len(self.dataloader)

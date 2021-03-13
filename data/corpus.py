@@ -136,10 +136,5 @@ class EyeTrackingCorpus:
                      x['v'][:, 0], x['v'][:, 1])).T,
                     axis=1)
 
-        elif self.signal_type == 'acc':
-            logging.info('Calculating acceleration...')
-            ms_per_sample = 1000 / self.effective_hz
-            self.data['a'] = self.data[['x', 'y']].apply(
-                lambda x: np.abs(np.diff(np.stack(x), 2)).T, 1) / ms_per_sample
         else:
             logging.info(du.get_stats(self.data[['x', 'y']]))

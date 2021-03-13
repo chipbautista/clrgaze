@@ -22,7 +22,7 @@ class SignalDataset(Dataset):
     Specifically handles:
     1. calls method to load and preprocess data for each data set
     2. pads all the signals to the same length
-    3. when used as DataLoader dataset. queries the data from the data sets.
+    3. when used as DataLoader dataset, queries the data from the data sets.
     4. when doing SimCLR training, also calls method to transform each signal
     """
     def __init__(self, corpora, args, caller='', **kwargs):

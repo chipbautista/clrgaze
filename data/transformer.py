@@ -20,15 +20,12 @@ class DataTransformer:
             self.chunk_dropout,
             self.chunk_copy,
             self.chunk_swap,
-            # self.point_copy,
-            # self.point_swap,
             self.alternate_dropout,
             self.channel_dropout,
             self.identity,
         ]
 
         self.crop_methods = ['random', 'same', 'consecutive']
-        # self.crop_methods = ['consecutive', 'random']
 
         self.dropout_p = 0.2
         self.chunk_length = 0.2
@@ -146,38 +143,6 @@ class DataTransformer:
         tmp = x[start: end].clone()
         x[start: end] = chunk
         x[chunk_start: chunk_end] = tmp
-        return x
-
-    def point_copy(self, x):
-        points_to_jitter = np.argwhere(
-            np.random.choice([True, False], size=len(x), p=[0.25, 0.75]))
-        direction = np.expand_dims(
-            np.random.choice([-1, +1], size=len(points_to_jitter)), -1)
-        points_to_swap = points_to_jitter + direction
-
-        # avoid IndexError
-        within_sample = (points_to_swap >= 0) & (points_to_swap < len(x))
-        points_to_jitter = points_to_jitter[within_sample]
-        points_to_swap = points_to_swap[within_sample]
-
-        x[points_to_swap] = x[points_to_jitter].clone()
-
-        return x
-
-    def point_swap(self, x):
-        points_to_jitter = np.argwhere(
-            np.random.choice([True, False], size=len(x), p=[0.2, 0.8]))
-        direction = np.expand_dims(
-            np.random.choice([-1, +1], size=len(points_to_jitter)), -1)
-        points_to_swap = points_to_jitter + direction
-
-        within_sample = (points_to_swap >= 0) & (points_to_swap < len(x))
-        points_to_jitter = points_to_jitter[within_sample]
-        points_to_swap = points_to_swap[within_sample]
-
-        tmp = x[points_to_swap].clone()
-        x[points_to_swap] = x[points_to_jitter]
-        x[points_to_jitter] = tmp
         return x
 
     def dropout(self, x):

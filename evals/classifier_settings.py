@@ -2,7 +2,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
-# from sklearn.naive_bayes import CategoricalNB
 
 
 log_reg_search = [
